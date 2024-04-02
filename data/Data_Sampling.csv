@@ -1,3 +1,4 @@
+url,label,result,largo_url,largo_hostname,largo_path,dimension_directorio,num_guionesbajos,num_arrobas,num_interrogacion,num_percent,num_puntos,num_iguales,num_http,num_https,num_www,num_numericos,num_letras,num_dir,manejo_ip,servicio,cluster
 https://www.facebook.com/group.php?gid=252662640472,benign,0,51,16,10,9,0,0,1,0,3,1,1,1,1,12,30,1,1,1,3237
 http://s522948764.online.de/ljkjljkj,malicious,1,36,20,9,8,0,0,0,0,2,0,1,0,0,9,21,1,1,1,3237
 https://www.nopatternrequired.com/2011/03/ice-hockey-in-the-fifties/,benign,0,68,25,35,4,0,0,0,0,2,0,1,1,1,6,49,4,1,1,3237
