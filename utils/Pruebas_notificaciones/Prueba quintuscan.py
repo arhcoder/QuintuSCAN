@@ -1,23 +1,17 @@
-# Importar los módulos necesarios
-import webbrowser
-from win10toast_click import ToastNotifier
-
-# Definir la función que se ejecutará cuando se haga clic en la notificación
-def open_url():
-    toaster.show_toast(
-        "Ejemplo2",
-        "Mensaje"
-    )
-
-# Inicializar el objeto ToastNotifier
-toaster = ToastNotifier()
-
-# Mostrar la notificación
-toaster.show_toast(
-    "Ejemplo",  # Título de la notificación
-    "¡Haz clic para abrir la URL!",  # Mensaje de la notificación
-    # Ruta al ícono de la notificación
-    duration=5,  # Duración de la notificación en segundos; None = dejar la notificación en el Centro de notificaciones
-    threaded=True,  # True = ejecutar otro código en paralelo; False = la ejecución del código esperará hasta que desaparezca la notificación
-    callback_on_click=open_url  # Función que se ejecutará cuando se haga clic en la notificación
+import time
+from winotify import Notification, audio
+import winotify
+r= winotify.Registry("QuintuScan", winotify.PY_EXE,r"c:\abs\path\to\script.py")
+notifier= winotify.Notifier(r)
+@notifier.register_callback
+def funcion2():
+    print("Hola")
+nombrenoti="QuintuScan"
+toast= Notification(
+    app_id=nombrenoti,
+    title="Ejemplo",
+    msg="Este es un mensaje de ejemplo",
+    duration="long",
 )
+toast.add_actions(label="Boton",launch=funcion2)
+toast.show()
