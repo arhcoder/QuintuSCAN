@@ -20,7 +20,7 @@ def process_packet(packet):
     if packet.haslayer(IP):
         packet_count += 1
         # Número de paquete, IP fuente, IP destino
-        print(f"{packet_count}| {packet[IP].src} -> {packet[IP].dst}", end=" ")
+        print(f"{packet_count}  | {packet[IP].src} -> {packet[IP].dst}", end=" ")
 
         if packet.haslayer(TCP):
             # Protocolo TCP, puerto origen, puerto destino
@@ -34,18 +34,23 @@ def process_packet(packet):
             # Protocolo ICMP, tipo, código
             print(f"| ICMP: {packet[ICMP].type}/{packet[ICMP].code}", end=" ")
 
-        # Tipo de tráfico
-        if packet.haslayer(TCP):
-            print("TCP")
-        elif packet.haslayer(UDP):
-            print("UDP")
-        elif packet.haslayer(ICMP):
-            print("ICMP")
-        else:
-            print("Otro")
+        print(f" | {packet.payload} {len(packet)} {packet.time} {packet.id}", end = " ")
 
-        if packet_count >= 10:  # Detener la captura después de procesar 10 paquetes
-            return True
+        # Dirección MAC de origen y destino
+        print(f" | {packet.src} {packet.dst}", end = " ")
+
+        # Información sobre la interfaz de red
+        print(f" | {packet.sniffed_on}")
+
+        # # Tipo de tráfico
+        # if packet.haslayer(TCP):
+        #     print(" |  TCP | ")
+        # elif packet.haslayer(UDP):
+        #     print(" |  UDP | ")
+        # elif packet.haslayer(ICMP):
+        #     print(" | ICMP | ")
+        # else:
+        #     print("Otro")
 
 # Capturar paquetes en la red
 print("Iniciando captura de paquetes...")
