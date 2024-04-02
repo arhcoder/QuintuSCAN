@@ -34,23 +34,16 @@ def process_packet(packet):
             # Protocolo ICMP, tipo, código
             print(f"| ICMP: {packet[ICMP].type}/{packet[ICMP].code}", end=" ")
 
-        print(f" | {packet.payload} {len(packet)} {packet.time} {packet.id}", end = " ")
+        print(f" |PAYLOAD  -> {packet.payload} LEN -> {len(packet)} TIME -> {packet.time} ID -> {packet.id}", end = " ")
+        
 
         # Dirección MAC de origen y destino
         print(f" | {packet.src} {packet.dst}", end = " ")
+        
+        print()
+        print()
 
-        # Información sobre la interfaz de red
-        print(f" | {packet.sniffed_on}")
-
-        # # Tipo de tráfico
-        # if packet.haslayer(TCP):
-        #     print(" |  TCP | ")
-        # elif packet.haslayer(UDP):
-        #     print(" |  UDP | ")
-        # elif packet.haslayer(ICMP):
-        #     print(" | ICMP | ")
-        # else:
-        #     print("Otro")
+# | IP O -> IP D | Transport Protocol type - SPORT DPORT | payload bytes time ID | SMAC DMAC | Tipo de trafico | 
 
 # Capturar paquetes en la red
 print("Iniciando captura de paquetes...")
