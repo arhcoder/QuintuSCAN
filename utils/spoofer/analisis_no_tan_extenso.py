@@ -1,40 +1,43 @@
-from scapy.all import sniff, TCP
+from scapy.all import *
 
 # Función de callback para procesar cada paquete capturado
 def process_packet(packet):
-    if packet.haslayer(TCP):
-        # Obtener el valor de sttl
-        if 'IP' in packet:
-            sttl = packet['IP'].ttl
-        else:
-            sttl = None  # No hay información de ttl en el paquete
-        
-        # Obtener otros campos requeridos
-        dttl = None  # No disponible en el paquete capturado
-        start_time = packet.time
-        last_time = packet.time
-        tcp_round_trip_time = None
-        tcp_setup_time_syn_ack = None
-        tcp_setup_time_ack = None
-        state_value = packet[TCP].sprintf("%TCP.flags%")
-        is_ftp_login = None
-        ct_ftp_cmd = None
-        service = None
+    if IP in packet:
+        proto = packet[IP].proto
+        src_ip = packet[IP].src
+        dst_ip = packet[IP].dst
 
-        # Mostrar los resultados
-        print(f"sttl: {sttl}")
-        print(f"dttl: {dttl}")
-        print(f"Start Time: {start_time}")
-        print(f"Last Time: {last_time}")
-        print(f"TCP Round Trip Time: {tcp_round_trip_time}")
-        print(f"TCP Setup Time SYN-ACK: {tcp_setup_time_syn_ack}")
-        print(f"TCP Setup Time ACK: {tcp_setup_time_ack}")
-        print(f"State Value: {state_value}")
-        print(f"FTP Session Accessed: {is_ftp_login}")
-        print(f"FTP Session Command Count: {ct_ftp_cmd}")
-        print(f"Service: {service}")
-        print()
+        # Asignar valor 1 si el protocolo es TCP, 3 si es UDP, 0 si no lo es
+        if proto == 6:  # TCP
+            protocol_label = "1"
+            state = packet[TCP].sprintf('%TCP.flags%')
+            sttl = packet[IP].ttl
+        elif proto == 17:  # UDP
+            protocol_label = "2"
+            state = '-'
+            sttl = packet[IP].ttl
+        else:
+            protocol_label = "0"
+            state = '-'
+            sttl = packet[IP].ttl
+
+        if proto == 6:
+            src_port = packet[TCP].sport
+            dst_port = packet[TCP].dport
+            
+            print(f"PROTO: {protocol_label}, IPSRC: {src_ip}:{src_port}, IPDST: {dst_ip}:{dst_port}, STATE: {state}, STTL: {sttl} ")
+            print()
+            print()
+
+        elif proto == 17:
+            src_port = packet[UDP].sport
+            dst_port = packet[UDP].dport
+            
+            print(f"PROTO: {protocol_label}, IPSRC: {src_ip}:{src_port}, IPDST: {dst_ip}:{dst_port}, STATE: {state}, STTL: {sttl} ")
+            print()
+            print()
+
 
 # Capturar paquetes en la red
 print("Iniciando captura de paquetes...")
-sniff(prn=process_packet)
+sniff(prn=process_packet, store=0)
