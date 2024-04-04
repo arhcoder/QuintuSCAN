@@ -1,6 +1,10 @@
 from scapy.all import *
 import time
 
+# Variables globales para mantener el estado de las conexiones y el tiempo del último paquete
+last_time = None
+last_size = None
+
 # Variables globales para mantener el estado de las conexiones
 connection_states = {}
 src_dport_counts = {}
@@ -40,17 +44,18 @@ def update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto):
             # Incrementar los contadores de tiempo de vida del estado de la conexión
             ttl = packet[IP].ttl if IP in packet else 0
             connection_states[(src_ip, dst_ip, "ct_state_ttl")] = ttl
-            connection_states[(src_ip, dst_ip, "ct_src_dport_ltm")] = src_dport_counts[(src_ip, dst_port)]
+            
+            connection_states[(src_ip, dst_ip, "ct_src_dport_ltm")] = tcp_layer.sport
             connection_states[(src_ip, dst_ip, "ct_dst_sport_ltm")] = tcp_layer.dport
             connection_states[(src_ip, dst_ip, "ct_dst_src_ltm")] = dst_src_counts[(src_ip, dst_ip)]
             
     elif proto == 17:  # UDP
-        connection_states[(src_ip, dst_ip)] = '-'
+        connection_states[(src_ip, dst_ip)] = 0  # Estado 0 para UDP
         src_dport_counts[(src_ip, dst_port)] = src_dport_counts.get((src_ip, dst_port), 0) + 1
         dst_sport_counts[(dst_ip, src_port)] = dst_sport_counts.get((dst_ip, src_port), 0) + 1
         dst_src_counts[(src_ip, dst_ip)] = dst_src_counts.get((src_ip, dst_ip), 0) + 1
     elif proto == 1:  # ICMP
-        connection_states[(src_ip, dst_ip)] = '-'
+        connection_states[(src_ip, dst_ip)] = 0  # Estado 0 para ICMP
         src_dport_counts[(src_ip, dst_port)] = src_dport_counts.get((src_ip, dst_port), 0) + 1
         dst_sport_counts[(dst_ip, src_port)] = dst_sport_counts.get((dst_ip, src_port), 0) + 1
         dst_src_counts[(src_ip, dst_ip)] = dst_src_counts.get((src_ip, dst_ip), 0) + 1
@@ -68,27 +73,51 @@ def process_packet(packet):
         if proto == 6:  # TCP
             protocol_label = "1"
             state = packet[TCP].sprintf('%TCP.flags%')
+            state_INT = 1 if state == "INT" else 0
+            state_CON = 1 if state == "CON" else 0
+            state_FIN = 1 if state == "FIN" else 0
             sttl = packet[IP].ttl if IP in packet else 0
             swin = packet[TCP].window
             dwin = packet[TCP].options[3][1] if packet[TCP].options and len(packet[TCP].options) > 3 else 0  # Extraer dwin si existe
         elif proto == 17:  # UDP
             protocol_label = "2"
-            state = '-'
+            # state_code = 0  # Estado 0 para UDP
+            # state_INT = 0
+            # state_CON = 0
+            # state_FIN = 0
             sttl = packet[IP].ttl if IP in packet else 0
             swin = 0  # No hay campo de ventana en UDP
             dwin = 0
+            state = None
+            state_INT = None
+            state_CON = None
+            state_FIN = None
         elif proto == 1:  # ICMP
             protocol_label = "3"
-            state = '-'
+            # state_code = 0  # Estado 0 para ICMP
+            # state_INT = 0
+            # state_CON = 0
+            # state_FIN = 0
             sttl = packet[IP].ttl if IP in packet else 0
             swin = 0  # No hay campo de ventana en ICMP
             dwin = 0
+            state = None
+            state_INT = None
+            state_CON = None
+            state_FIN = None
         else:
             protocol_label = "0"
-            state = '-'
+            state_code = 0
+            state_INT = 0
+            state_CON = 0
+            state_FIN = 0
             sttl = packet[IP].ttl if IP in packet else 0
             swin = 0
             dwin = 0
+            state = None
+            state_INT = None
+            state_CON = None
+            state_FIN = None
 
         if proto == 6:
             src_port = packet[TCP].sport
@@ -99,7 +128,7 @@ def process_packet(packet):
             # Actualizar los recuentos de conexiones
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
             
-            print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, CT_SRC_DPORT_LTM: {connection_states.get((src_ip, dst_ip, 'ct_src_dport_ltm'), '-')}, CT_STATE_TTL: {connection_states.get((src_ip, dst_ip, 'ct_state_ttl'), '-')}")
+            print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
             print()
             print()
 
@@ -112,7 +141,7 @@ def process_packet(packet):
             # Actualizar los recuentos de conexiones
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
             
-            print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, CT_SRC_DPORT_LTM: {connection_states.get((src_ip, dst_ip, 'ct_src_dport_ltm'), '-')}, CT_STATE_TTL: {connection_states.get((src_ip, dst_ip, 'ct_state_ttl'), '-')}")
+            print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
             print()
             print()
         
@@ -121,18 +150,9 @@ def process_packet(packet):
             dst_port = packet[ICMP].dport
             # Calcular la tasa de bits de destino
             dload = calculate_dload(packet)
-            
+
             # Actualizar los recuentos de conexiones
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
-            
-            print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, CT_SRC_DPORT_LTM: {connection_states.get((src_ip, dst_ip, 'ct_src_dport_ltm'), '-')}, CT_STATE_TTL: {connection_states.get((src_ip, dst_ip, 'ct_state_ttl'), '-')}")
-            print()
-            print()
 
-# Variable global para el tiempo y tamaño del último paquete
-last_time = None
-last_size = None
-
-# Capturar paquetes en la red
-print("Iniciando captura de paquetes...")
+# Iniciar la captura de paquetes
 sniff(prn=process_packet, store=0)
