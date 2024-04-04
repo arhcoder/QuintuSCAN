@@ -64,6 +64,8 @@ def update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto):
 def process_packet(packet):
     global last_time, last_size
 
+    printed_something = False  # Variable auxiliar para verificar si algo se ha impreso
+
     if IP in packet:
         proto = packet[IP].proto
         src_ip = packet[IP].src
@@ -81,10 +83,6 @@ def process_packet(packet):
             dwin = packet[TCP].options[3][1] if packet[TCP].options and len(packet[TCP].options) > 3 else 0  # Extraer dwin si existe
         elif proto == 17:  # UDP
             protocol_label = "2"
-            # state_code = 0  # Estado 0 para UDP
-            # state_INT = 0
-            # state_CON = 0
-            # state_FIN = 0
             sttl = packet[IP].ttl if IP in packet else 0
             swin = 0  # No hay campo de ventana en UDP
             dwin = 0
@@ -94,10 +92,6 @@ def process_packet(packet):
             state_FIN = None
         elif proto == 1:  # ICMP
             protocol_label = "3"
-            # state_code = 0  # Estado 0 para ICMP
-            # state_INT = 0
-            # state_CON = 0
-            # state_FIN = 0
             sttl = packet[IP].ttl if IP in packet else 0
             swin = 0  # No hay campo de ventana en ICMP
             dwin = 0
@@ -119,7 +113,7 @@ def process_packet(packet):
             state_CON = None
             state_FIN = None
 
-        if proto == 6:
+        if proto == 6:#TCP
             src_port = packet[TCP].sport
             dst_port = packet[TCP].dport
             # Calcular la tasa de bits de destino
@@ -128,11 +122,15 @@ def process_packet(packet):
             # Actualizar los recuentos de conexiones
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
             
-            print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
-            print()
-            print()
+            # Imprimir los detalles del paquete si algo se imprime
+            if not printed_something:
+                printed_something = True
+                print("Tráfico anómalo")
+            #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
+            #print()
+            #print()
 
-        elif proto == 17:
+        elif proto == 17:#UDP
             src_port = packet[UDP].sport
             dst_port = packet[UDP].dport
             # Calcular la tasa de bits de destino
@@ -141,11 +139,15 @@ def process_packet(packet):
             # Actualizar los recuentos de conexiones
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
             
-            print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
-            print()
-            print()
+            # Imprimir los detalles del paquete si algo se imprime
+            if not printed_something:
+                printed_something = True
+                print("Tráfico anómalo")
+            #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
+            #print()
+            #print()
         
-        elif proto == 1:
+        elif proto == 1:#ICMP
             src_port = packet[ICMP].sport
             dst_port = packet[ICMP].dport
             # Calcular la tasa de bits de destino
@@ -153,6 +155,18 @@ def process_packet(packet):
 
             # Actualizar los recuentos de conexiones
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
+
+            # Imprimir los detalles del paquete si algo se imprime
+            if not printed_something:
+                printed_something = True
+                print("Tráfico anómalo")
+            #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
+            #print()
+            #print()
+
+    # Si nada se ha impreso, imprimir "FALSE"
+    if not printed_something:
+        print("Tráfico regular")
 
 # Iniciar la captura de paquetes
 sniff(prn=process_packet, store=0)
