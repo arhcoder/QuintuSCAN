@@ -1,5 +1,6 @@
 from scapy.all import *
 import time
+from anomalia import AnomalIA
 
 # Variables globales para mantener el estado de las conexiones y el tiempo del último paquete
 last_time = None
@@ -123,8 +124,11 @@ def process_packet(packet):
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
             
             # Imprimir los detalles del paquete si algo se imprime
-            if not printed_something:
+            if ia.predict_anomaly(data) == 1:
                 printed_something = True
+                print("ATAQUE!")
+                print("Tipo de anomalía:", ia.predict_attack(data))
+            #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
                 print("Tráfico anómalo")
             #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, CT_STATE_TTL: {connection_states.get((src_ip, dst_ip, 'ct_state_ttl'), STATE_FIN: {state_FIN}")
             #print()
@@ -140,9 +144,8 @@ def process_packet(packet):
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
             
             # Imprimir los detalles del paquete si algo se imprime
-            if not printed_something:
-                printed_something = True
-                print("Tráfico anómalo")
+            
+            if ia.predict_anomaly(data) == 1:
                 data = {
                     "sttl": sttl,
                     "state_INT": state_INT,
@@ -154,6 +157,10 @@ def process_packet(packet):
                     "dwin": dwin,
                     "state_FIN": state_FIN
                 }
+                printed_something = True
+                print("ATAQUE!")
+                print("Tipo de anomalía:", ia.predict_attack(data))
+                print("Tráfico anómalo")
             #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
             #print()
             #print()
@@ -168,16 +175,21 @@ def process_packet(packet):
             update_connection_counts(packet, src_ip, dst_ip, src_port, dst_port, proto)
 
             # Imprimir los detalles del paquete si algo se imprime
-            if not printed_something:
+            if ia.predict_anomaly(data) == 1:
                 printed_something = True
-                print("Tráfico anómalo")
+                print("ATAQUE!")
+                print("Tipo de anomalía:", ia.predict_attack(data))
             #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
             #print()
             #print()
 
     # Si nada se ha impreso, imprimir "FALSE"
     if not printed_something:
-        print("Tráfico regular")
+        print("Normal...")
 
 # Iniciar la captura de paquetes
+ia = AnomalIA(
+    "models/Anomalies_Detector/anomalies_rf.pkl",
+    "models/Anomalies_Detector/attacks_rf.pkl"
+)
 sniff(prn=process_packet, store=0)
