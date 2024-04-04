@@ -126,7 +126,7 @@ def process_packet(packet):
             if not printed_something:
                 printed_something = True
                 print("Tráfico anómalo")
-            #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
+            #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, CT_STATE_TTL: {connection_states.get((src_ip, dst_ip, 'ct_state_ttl'), STATE_FIN: {state_FIN}")
             #print()
             #print()
 
@@ -143,6 +143,17 @@ def process_packet(packet):
             if not printed_something:
                 printed_something = True
                 print("Tráfico anómalo")
+                data = {
+                    "sttl": sttl,
+                    "state_INT": state_INT,
+                    "ct_state_ttl": src_ip,
+                    "proto_tcp": proto,
+                    "swin": swin,
+                    "dload": dload,
+                    "state_CON": state_CON,
+                    "dwin": dwin,
+                    "state_FIN": state_FIN
+                }
             #print(f"PROTO: {protocol_label}, IPSRC: {src_ip} : SPORT: {src_port}, IPDST: {dst_ip} : DPORT: {dst_port}, STATE: {state}, STTL: {sttl}, DLOAD: {dload}, SWIN: {swin}, DWIN: {dwin}, STATE_INT: {state_INT}, STATE_CON: {state_CON}, STATE_FIN: {state_FIN}")
             #print()
             #print()
